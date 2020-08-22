@@ -1,0 +1,25 @@
+language: generic
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t dsengupta50/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true dsengupta50/react-test npm test
+
+after_success:
+    - docker build -t dsengupta50/multi-client ./client
+    - docker build -t dsengupta50/multi-nginx ./nginx
+    - docker build -t dsengupta50/multi-server ./server
+    - docker build -t dsengupta50/multi-worker ./worker
+    # Login to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker log -u "$DOCKER_ID" --password-stdin
+    # Take the images and push them to docker hub
+    - docker push dsengupta50/multi-client
+    - docker push dsengupta50/multi-nginx
+    - docker push dsengupta50/multi-server
+    - docker push dsengupta50/multi-worker
+
+
